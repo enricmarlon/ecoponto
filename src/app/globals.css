@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  --background: #b7d39a;
+  --foreground: #1c2b1a;
+}
+
+body {
+  background-color: var(--background);
+  background-image: linear-gradient(
+    180deg,
+    #9fc47a 0%,
+    #b7d39a 50%,
+    #a8c986 100%
+  );
+  color: var(--foreground);
+}
