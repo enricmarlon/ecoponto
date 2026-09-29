@@ -3,7 +3,7 @@ import { Header } from "@/src/components/header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ReciclaAqui",
+  title: "EcoPonto Digital",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
