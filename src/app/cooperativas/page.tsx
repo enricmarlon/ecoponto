@@ -12,11 +12,11 @@ interface Cooperativa {
 
 const cooperativas: Cooperativa[] = [
   {
-    nome: "Ecoponto - Cachoeirinha RS",
-    endereco: "R. Ary Rosa dos Santos, 397 - Distrito Industrial",
-    cidade: "Cachoeirinha",
+    nome: "Ecoponto",
+    endereco: "Jardim Krahe",
+    cidade: "Viamão",
     estado: "RS",
-    telefone: "(51) 3041-6218",
+    telefone: "(51) 3045-4780",
   },
   {
     nome: "Ecoponto - Cachoeirinha RS",
@@ -33,11 +33,11 @@ const cooperativas: Cooperativa[] = [
     telefone: "(51) 98648-5515",
   },
   {
-    nome: "Ecoponto",
-    endereco: "Jardim Krahe",
-    cidade: "Viamão",
+    nome: "Reciclatudo Coleta Seletiva Ltda",
+    endereco: "R. Gravataí, 1007 - Vila Imbui",
+    cidade: "Cachoeirinha",
     estado: "RS",
-    telefone: "(51) 3045-4780",
+    telefone: "(51) 3471-5544",
   },
   {
     nome: "S RECICLAGEM",
@@ -78,11 +78,11 @@ const cooperativas: Cooperativa[] = [
     telefone: "(51) 98416-9301",
   },
   {
-    nome: "Reciclatudo Coleta Seletiva Ltda",
-    endereco: "R. Gravataí, 1007 - Vila Imbui",
+    nome: "Ecoponto - Cachoeirinha RS",
+    endereco: "R. Ary Rosa dos Santos, 397 - Distrito Industrial",
     cidade: "Cachoeirinha",
     estado: "RS",
-    telefone: "(51) 3471-5544",
+    telefone: "(51) 3041-6218",
   },
   {
     nome: "UDC Cruzeiro do Sul (Ecoponto)",
