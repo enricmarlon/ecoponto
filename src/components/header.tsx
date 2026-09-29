@@ -12,10 +12,6 @@ export function Header() {
         {/* Navegação Principal */}
         <nav className="flex items-center gap-6 text-sm font-medium text-neutral-600">
           <Link href="/cooperativas" className="hover:text-neutral-900 transition-colors">
-            Visualizar cooperativas
-          </Link>
-          
-          <Link href="/pontos-coleta" className="hover:text-neutral-900 transition-colors">
             Pontos de Coleta
           </Link>
 
