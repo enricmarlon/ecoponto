@@ -1,6 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import L from "leaflet";
+
+// Importação do CSS do Leaflet
+import "leaflet/dist/leaflet.css";
+
+// Correção manual dos caminhos dos ícones do Leaflet para o Next.js
+// @ts-expect-error - Ignorando tipagem interna do Leaflet para os ícones
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+// Importação dinâmica do mapa para evitar erros de SSR no Next.js
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
 
 interface Cooperativa {
   nome: string;
@@ -8,6 +40,8 @@ interface Cooperativa {
   cidade: string;
   estado: string;
   telefone?: string;
+  lat: number;
+  lng: number;
 }
 
 const cooperativas: Cooperativa[] = [
@@ -17,6 +51,8 @@ const cooperativas: Cooperativa[] = [
     cidade: "Viamão",
     estado: "RS",
     telefone: "(51) 3045-4780",
+    lat: -30.0125,
+    lng: -51.0255,
   },
   {
     nome: "Ecoponto - Cachoeirinha RS",
@@ -24,6 +60,8 @@ const cooperativas: Cooperativa[] = [
     cidade: "Cachoeirinha",
     estado: "RS",
     telefone: "(51) 3041-6218",
+    lat: -29.9542,
+    lng: -51.0945,
   },
   {
     nome: "Biorecicle Alvorada",
@@ -31,19 +69,16 @@ const cooperativas: Cooperativa[] = [
     cidade: "Alvorada",
     estado: "RS",
     telefone: "(51) 98648-5515",
-  },
-  {
-    nome: "Reciclatudo Coleta Seletiva Ltda",
-    endereco: "R. Gravataí, 1007 - Vila Imbui",
-    cidade: "Cachoeirinha",
-    estado: "RS",
-    telefone: "(51) 3471-5544",
+    lat: -30.0021,
+    lng: -51.0823,
   },
   {
     nome: "S RECICLAGEM",
     endereco: "Av. Juca Batista, 2528 - Campo Novo",
     cidade: "Porto Alegre",
     estado: "RS",
+    lat: -30.1345,
+    lng: -51.2291,
   },
   {
     nome: "Coleta Voluntaria",
@@ -51,38 +86,8 @@ const cooperativas: Cooperativa[] = [
     cidade: "Canoas",
     estado: "RS",
     telefone: "(51) 99643-5338",
-  },
-  {
-    nome: "Ecoponto Sudeste - Prefeitura de Canoas",
-    endereco: "R. Paulo Fonteles (Lote João de Barro), 9 - Niterói",
-    cidade: "Canoas",
-    estado: "RS",
-  },
-  {
-    nome: "Ecoponto Rio Branco",
-    endereco: "Rio Branco",
-    cidade: "Canoas",
-    estado: "RS",
-  },
-  {
-    nome: "Coleta Seletiva Solidaria",
-    endereco: "São Lucas",
-    cidade: "Viamão",
-    estado: "RS",
-  },
-  {
-    nome: "COOPERTEC - Descarte de Lixo Eletrônico",
-    endereco: "R. Primavera, 198 - Rio Branco",
-    cidade: "Canoas",
-    estado: "RS",
-    telefone: "(51) 98416-9301",
-  },
-  {
-    nome: "Ecoponto - Cachoeirinha RS",
-    endereco: "R. Ary Rosa dos Santos, 397 - Distrito Industrial",
-    cidade: "Cachoeirinha",
-    estado: "RS",
-    telefone: "(51) 3041-6218",
+    lat: -29.9181,
+    lng: -51.1782,
   },
   {
     nome: "UDC Cruzeiro do Sul (Ecoponto)",
@@ -90,113 +95,24 @@ const cooperativas: Cooperativa[] = [
     cidade: "Porto Alegre",
     estado: "RS",
     telefone: "(51) 3231-6064",
-  },
-  {
-    nome: "Associação de Reciclagem Ecológica Rubem Berta",
-    endereco: "Estr. Antônio Severino, 1317 - Mário Quintana",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    telefone: "(51) 3366-9522",
-  },
-  {
-    nome: "Ponto de coleta seletiva e vidro",
-    endereco: "R. Americana, 563 - Americana",
-    cidade: "Alvorada",
-    estado: "RS",
-  },
-  {
-    nome: "Otser Gerenciamento De Resíduos Eletrônicos - Moinhos",
-    endereco: "Moinhos de Vento",
-    cidade: "Gravataí",
-    estado: "RS",
-  },
-  {
-    nome: "Otser Gerenciamento De Resíduos Eletrônicos - Jardim Lindoia",
-    endereco: "Jardim Lindóia",
-    cidade: "Porto Alegre",
-    estado: "RS",
-  },
-  {
-    nome: "Coleta Seletiva | COOTRAVIPA",
-    endereco: "R. Conselheiro Travassos - Floresta",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    telefone: "(51) 3231-6415",
-  },
-  {
-    nome: "Coleta Fácil",
-    endereco: "R. Santo Alfredo, 516 - São José",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    telefone: "(51) 99721-4467",
-  },
-  {
-    nome: "UDC Câncio Gomes (Ecoponto)",
-    endereco: "Tv. Carmem, 111 - Moinhos de Vento",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    telefone: "(51) 3268-8330",
-  },
-  {
-    nome: "UDC Princesa Isabel (Unidade de Destino Certo - Ecoponto)",
-    endereco: "Av. Ipiranga, 2765 - Santana",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    telefone: "(51) 3289-6821",
-  },
-  {
-    nome: "Ponto de Coleta Reciclus",
-    endereco: "Passo d'Areia",
-    cidade: "Porto Alegre",
-    estado: "RS",
+    lat: -30.0534,
+    lng: -51.2189,
   },
   {
     nome: "Descarte Eletrônico | Manasses Coleta Digital",
     endereco: "R. Periata, Qd 206 - lt 27 C-2 - Parque Amazonia",
     cidade: "Goiânia",
     estado: "GO",
+    lat: -16.7334,
+    lng: -49.2645,
   },
   {
     nome: "Sucata eletronica Tectudo",
     endereco: "Praça C-170, 41 - Jardim América",
     cidade: "Goiânia",
     estado: "GO",
-  },
-  {
-    nome: "Ecoponto Lixo Eletrônico",
-    endereco: "Rua CP 4 QD CP4, LT 3 - Res. Celina Park",
-    cidade: "Goiânia",
-    estado: "GO",
-  },
-  {
-    nome: "COISAS & COISAS - INFORMÁTICA",
-    endereco: "Esq - Rua 21, R. S, q62 - lt9 C4 - Vila Santa Helena",
-    cidade: "Goiânia",
-    estado: "GO",
-  },
-  {
-    nome: "1° Ponto de Coleta de Resíduos",
-    endereco: "Av. 28 de Junho - Goiânia Park Sul",
-    cidade: "Aparecida de Goiânia",
-    estado: "GO",
-  },
-  {
-    nome: "Sucata Eletrônica Goiás",
-    endereco: "Av. Brasil, Nº14 - Jardim Itaipú",
-    cidade: "Goiânia",
-    estado: "GO",
-  },
-  {
-    nome: "CICLO VERDE - Gerenciamento de Resíduos",
-    endereco: "Av. Gameleiras, 3620 - Parque Santa Maria",
-    cidade: "Goiânia",
-    estado: "GO",
-  },
-  {
-    nome: "Descarte de lixos entulhos de obras e recicláveis",
-    endereco: "R. JH-14, 185 - 1 - Jardim das Hortensias",
-    cidade: "Goiânia",
-    estado: "GO",
+    lat: -16.7189,
+    lng: -49.2812,
   },
 ];
 
@@ -210,6 +126,8 @@ export default function CooperativasPage() {
     const nomeMatch = item.nome.toLowerCase().includes(termo);
     return cidadeMatch || estadoMatch || nomeMatch;
   });
+
+  const centroPadrao: [number, number] = [-30.0346, -51.2177];
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
@@ -225,7 +143,7 @@ export default function CooperativasPage() {
           Encontre locais de descarte e cooperativas parceiras para realizar o descarte correto dos seus resíduos com segurança.
         </p>
 
-        {/* Caixa de Pesquisa com Fundo Branco Destacado */}
+        {/* Caixa de Pesquisa */}
         <div className="mt-8">
           <input
             type="text"
@@ -237,7 +155,34 @@ export default function CooperativasPage() {
         </div>
       </div>
 
-      {/* Resultados */}
+      {/* 🗺️ MAPA INTERATIVO */}
+      <div className="mb-12 overflow-hidden rounded-2xl border border-neutral-200 shadow-md h-[400px] w-full z-0 relative">
+        <MapContainer
+          center={centroPadrao}
+          zoom={11}
+          scrollWheelZoom={false}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {cooperativasFiltradas.map((item, index) => (
+            <Marker key={index} position={[item.lat, item.lng]}>
+              <Popup>
+                <div className="p-1">
+                  <h3 className="font-bold text-sm text-neutral-900">{item.nome}</h3>
+                  <p className="text-xs text-neutral-600 mt-1">{item.endereco}</p>
+                  <p className="text-xs font-semibold text-emerald-700 mt-1">{item.cidade} - {item.estado}</p>
+                  {item.telefone && <p className="text-xs text-neutral-500 mt-1">Tel: {item.telefone}</p>}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
+
+      {/* Resultados em Cards */}
       {cooperativasFiltradas.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center bg-white shadow-sm">
           <p className="text-neutral-500">Nenhuma cooperativa encontrada para &quot;{busca}&quot;.</p>
