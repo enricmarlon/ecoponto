@@ -1,38 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
-import L from "leaflet";
 
-// Importação do CSS do Leaflet
-import "leaflet/dist/leaflet.css";
-
-// Correção manual dos caminhos dos ícones do Leaflet para o Next.js
-// @ts-expect-error - Ignorando tipagem interna do Leaflet para os ícones
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
-// Importação dinâmica do mapa para evitar erros de SSR no Next.js
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
+// Importação dinâmica do mapa desativando o SSR (Server-Side Rendering)
+const MapaDinamico = dynamic(() => import("./Mapa"), { ssr: false });
 
 interface Cooperativa {
   nome: string;
@@ -127,8 +99,6 @@ export default function CooperativasPage() {
     return cidadeMatch || estadoMatch || nomeMatch;
   });
 
-  const centroPadrao: [number, number] = [-30.0346, -51.2177];
-
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
       {/* Cabeçalho / Hero Section */}
@@ -155,32 +125,8 @@ export default function CooperativasPage() {
         </div>
       </div>
 
-      {/* 🗺️ MAPA INTERATIVO */}
-      <div className="mb-12 overflow-hidden rounded-2xl border border-neutral-200 shadow-md h-[400px] w-full z-0 relative">
-        <MapContainer
-          center={centroPadrao}
-          zoom={11}
-          scrollWheelZoom={false}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {cooperativasFiltradas.map((item, index) => (
-            <Marker key={index} position={[item.lat, item.lng]}>
-              <Popup>
-                <div className="p-1">
-                  <h3 className="font-bold text-sm text-neutral-900">{item.nome}</h3>
-                  <p className="text-xs text-neutral-600 mt-1">{item.endereco}</p>
-                  <p className="text-xs font-semibold text-emerald-700 mt-1">{item.cidade} - {item.estado}</p>
-                  {item.telefone && <p className="text-xs text-neutral-500 mt-1">Tel: {item.telefone}</p>}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
-      </div>
+      {/* 🗺️ MAPA INTERATIVO ISOLADO */}
+      <MapaDinamico cooperativas={cooperativasFiltradas} />
 
       {/* Resultados em Cards */}
       {cooperativasFiltradas.length === 0 ? (
